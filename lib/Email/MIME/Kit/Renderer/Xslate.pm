@@ -6,12 +6,21 @@ with 'Email::MIME::Kit::Role::Renderer';
 # ABSTRACT: render parts of your mail with Text::Xslate
 
 use Text::Xslate;
+use Encode;
 
 sub render {
    my ($self, $tpl, $stash) = @_;
 
-   \($self->_render_tx($$tpl, $stash||{}))
+   my $text = $self->_render_tx($$tpl, $stash||{});
+   $text = encode($self->encoding, $text) if $self->encoding;
+
+   \$text;
 }
+
+has encoding => (
+   is      => 'ro',
+   default => 'UTF-8',
+);
 
 has options => (
    is      => 'ro',
@@ -51,12 +60,16 @@ Or, to supply options:
          "options": {
             "syntax": "Kolon"
             // etc etc
-         }
+         },
+         "encoding": "UTF-16"
       }
     ]
   }
 
-All options are passed verbatim to C<< Text::Xslate->new >>.
+C<options> are passed verbatim to C<< Text::Xslate->new >>.
+
+C<encoding> will handle convertion the generated template from characters to
+bytes.  The default is C<UTF-8>.
 
 For plaintext emails a good default is
 
